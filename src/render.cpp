@@ -25,6 +25,7 @@ Scope scope;
 #include "envelope_filter.h"
 #include "overdrive.h"
 #include "klingon.h"
+#include "osc.h"
 
 unsigned int gAudioFramesPerAnalogFrame;
 //Global input sample rate variable
@@ -309,7 +310,6 @@ channel_filter knobs[ANALOG_CHANNELS];
 debouncer pushbuttons[N_PBTNS];
 
 unsigned int rtprintclock = 0;
-
 
 /*
 *  Apply settings from knobs to delay effect 
@@ -2117,6 +2117,8 @@ void setup_digital_inputs(BelaContext *context)
 
 bool setup(BelaContext *context, void *userData)
 {
+	osc_setup();
+
 	gAudioFramesPerAnalogFrame = context->audioFrames / context->analogFrames;
 	gifs = 1.0/context->audioSampleRate;
 	gNframes = context->audioFrames;
@@ -2233,6 +2235,9 @@ bool setup(BelaContext *context, void *userData)
 	gMaster_Envelope = (float*) malloc(sizeof(float)*gNframes);
 	for(int i = 0; i<gNframes; i++)
 		gMaster_Envelope[i] = 0.0;
+
+	// Position knobs so Shrimp can hear the effects.
+	osc_set_knobs(ko, chorus);
 		
 	//
 	// DEBUG (scope)
