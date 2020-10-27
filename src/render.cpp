@@ -133,7 +133,7 @@ float *ch0, *ch1;
 int gNframes = 0;
 
 // DEFINES for selection of analog input channel functions
-
+	
 // ------------  Control page context mappings ------------  //
 	// Flange, chorus, delay Control page 2
 #define LFO_RATE 			0
@@ -2115,10 +2115,10 @@ void setup_digital_inputs(BelaContext *context)
 
 }
 
+#define SHRIMP_SINGLECHANNEL
+
 bool setup(BelaContext *context, void *userData)
 {
-	osc_setup();
-
 	gAudioFramesPerAnalogFrame = context->audioFrames / context->analogFrames;
 	gifs = 1.0/context->audioSampleRate;
 	gNframes = context->audioFrames;
@@ -2236,15 +2236,14 @@ bool setup(BelaContext *context, void *userData)
 	for(int i = 0; i<gNframes; i++)
 		gMaster_Envelope[i] = 0.0;
 
-	// Position knobs so Shrimp can hear the effects.
-	osc_set_knobs(ko, chorus);
-		
+	osc::setup(fbcompressor, &fx_sustain, ko, od, chorus, &zita1);
+
 	//
 	// DEBUG (scope)
 	//
-	
+#ifdef SCOPE_ENABLEs
 	scope.setup(2, context->audioSampleRate);
-	
+#endif
 	return true;
 }
 
@@ -2268,21 +2267,34 @@ void render(BelaContext *context, void *userData)
 	klingon_tick(ko, ch0);
 	trem_tick_n(trem, ch0, gNframes);
 
+#ifdef SHRIMP_SINGLECHANNEL
+	tflanger_tick(delayline, gNframes, ch0, gMaster_Envelope);
+	tflanger_tick(chorus, gNframes, ch0, gMaster_Envelope);
+	tflanger_tick(flanger, gNframes, ch0, gMaster_Envelope);
+	phaser_tick_n(phaser, gNframes, ch0);
+	zita1.tick_mono(gNframes, ch0);
+#else
 	//CH1 effects
 	tflanger_tick(delayline, gNframes, ch1, gMaster_Envelope);
 	tflanger_tick(chorus, gNframes, ch1, gMaster_Envelope);
 	tflanger_tick(flanger, gNframes, ch1, gMaster_Envelope);
 	phaser_tick_n(phaser, gNframes, ch1);
 	zita1.tick_mono(gNframes, ch1);
-	
+#endif
 	
 	for(unsigned int n = 0; n < context->audioFrames; n++) {
 		if(startup_mask_timer > 0) 
 			startup_mask_timer--;
-		//scope.log(gMaster_Envelope[n], ch0[n]);
-		//scope.log(ch0[n], ch1[n]);
+#ifdef SCOPE_ENABLE
+		scope.log(gMaster_Envelope[n], ch0[n]);
+		scope.log(ch0[n], ch1[n]);
+#endif
 		audioWrite(context, n, 0, ch0[n]);
+#ifdef SHRIMP_SINGLECHANNEL
+		audioWrite(context, n, 1, ch0[n]);
+#else
 		audioWrite(context, n, 1, ch1[n]);
+#endif
 	}	
 }
 
