@@ -1,80 +1,109 @@
 /***** osc_klingon.hpp *****/
-// osc.cpp non-header include
-// note this when scoping names etc.
+// osc.cpp inline include -- note this when scoping names etc.
 
-#define KLINGON_ENABLE "/klingon/enable"
+struct {
+	knob_t drive;
+	knob_t tone;
+	knob_t level;
+	knob_t boost;
+	klingon *effect;
+} klingon_faceplate;
 
-parameter_map kot_map[4] = {
-	{ 0.0, 1.0,  12.0, 45.0 },   // DRIVE
-	{ 0.0, 1.0, -40.0,  0.0 },   // TONE
-	{ 0.0, 1.0, -40.0,  0.0 },   // LEVEL
-	{ 0.0, 1.0,  0.01, 0.99 }    // BOOST
-};
-klingon *klingontone;
-
-void send_klingontone() {
+void send_klingon() {
 	// set TouchOSC knobs to current parameter values.
-	printf("klingon is initially %f %f %f %f\n",
-		klingontone->gain,
-		klingontone->tone,
-		klingontone->level,
-		klingontone->hard);
-	sender.newMessage("/klingontone/drive")
-	.add(todomain(klingontone->gain, kot_map[0])).send();
-	sender.newMessage("/klingontone/tone")
-	.add(todomain(klingontone->tone, kot_map[1])).send();
-	sender.newMessage("/klingontone/level")
-	.add(todomain(klingontone->level, kot_map[2])).send();
-	sender.newMessage("/klingontone/boost")
-	.add(todomain(klingontone->hard, kot_map[3])).send();
+	send_address_value("/klingon/enable", 0.0);
+	send_knob(klingon_faceplate.drive);
+	send_knob(klingon_faceplate.tone);
+	send_knob(klingon_faceplate.level);
+	send_knob(klingon_faceplate.boost);
 }
 
 void enable_klingon(bool enable=true) {
-	kot_set_bypass(klingontone, !enable);
+	kot_set_bypass(klingon_faceplate.effect, !enable);
 }
 
-void setup_klingontone(klingon *device) {
-	klingontone = device;
-	send_klingontone();
-}
-
-bool receive_klingontone(oscpkt::Message *msg) {
+bool receive_klingon(oscpkt::Message *msg) {
 	float f = 0.5;
-	float val = 0.5;
-
-	if(msg->match(KLINGON_ENABLE)) {
-		msg->match(KLINGON_ENABLE).popFloat(f).isOkNoMoreArgs();
-		if (f > 0.0) enable_klingon();
-		else enable_klingon(false);
+	auto effect = klingon_faceplate.effect;
+	
+	if(msg->match("/klingon/enable")) {
+		msg->match("/klingon/enable").popFloat(f).isOkNoMoreArgs();
+		enable_klingon(f > 0.0);
 		return true;
 	}
-	if(msg->match("/klingon/drive")) {
-		msg->match("/klingon/drive").popFloat(f).isOkNoMoreArgs();
-		val = torange(f, kot_map[0]);
-		// printf("kot drive: %f -> %f\n", f, val);
-		kot_set_drive(klingontone, val);
+	auto knob = &klingon_faceplate.drive;
+	if(msg->match(knob->address)) {
+		msg->match(knob->address).popFloat(f).isOkNoMoreArgs();
+		knob->value = torange(f, knob->map);
+		kot_set_drive(effect, knob->value);
 		return true;
 	}
-	if(msg->match("/klingon/tone")) {
-		msg->match("/klingon/tone").popFloat(f).isOkNoMoreArgs();
-		val = torange(f, kot_map[1]);
-		// printf("kot tone: %f -> %f\n", f, val);
-		kot_set_tone(klingontone, val);
+	knob = &klingon_faceplate.tone;
+	if(msg->match(knob->address)) {
+		msg->match(knob->address).popFloat(f).isOkNoMoreArgs();
+		knob->value = torange(f, knob->map);
+		kot_set_tone(effect, knob->value);
 		return true;
 	}
-	if(msg->match("/klingon/level")) {
-		msg->match("/klingon/level").popFloat(f).isOkNoMoreArgs();
-		val = torange(f, kot_map[2]);
-		// printf("kot level: %f -> %f\n", f, val);
-		kot_set_level(klingontone, val);
+	knob = &klingon_faceplate.level;
+	if(msg->match(knob->address)) {
+		msg->match(knob->address).popFloat(f).isOkNoMoreArgs();
+		knob->value = torange(f, knob->map);
+		kot_set_level(effect, knob->value);
 		return true;
 	}
-	if(msg->match("/klingon/boost")) {
-		msg->match("/klingontone/boost").popFloat(f).isOkNoMoreArgs();
-		val = torange(f, kot_map[3]);
-		// printf("kot boost: %f -> %f\n", f, val);
-		kot_set_boost(klingontone, val);
+	knob = &klingon_faceplate.boost;
+	if(msg->match(knob->address)) {
+		msg->match(knob->address).popFloat(f).isOkNoMoreArgs();
+		knob->value = torange(f, knob->map);
+		kot_set_boost(effect, knob->value);
 		return true;
 	}
 	return false;
+}
+
+void setup_klingon(klingon *effect) {
+	klingon_faceplate.effect = effect;
+
+	knob_t *knob = &klingon_faceplate.drive;
+	knob->address = "/klingon/drive";
+	knob->id = 0;
+	knob->map[0] = 0.0;
+	knob->map[1] = 1.0;
+	knob->map[2] = 0.0;
+	knob->map[3] = 1.0;
+	knob->value = 0.5;
+	kot_set_drive(effect, knob->value);
+
+	knob = &klingon_faceplate.tone;
+	knob->address = "/klingon/tone";
+	knob->id = 1;
+	knob->map[0] = 0.0;
+	knob->map[1] = 1.0;
+	knob->map[2] = -40.0;
+	knob->map[3] = 0.0;
+	knob->value = -5.0;
+	kot_set_tone(effect, knob->value);
+
+	knob = &klingon_faceplate.level;
+	knob->address = "/klingon/level";
+	knob->id = 2;
+	knob->map[0] = 0.0;
+	knob->map[1] = 1.0;
+	knob->map[2] = -40.0;
+	knob->map[3] = 0.0;
+	knob->value = 0.0;
+	kot_set_level(effect, knob->value);
+
+	knob = &klingon_faceplate.boost;
+	knob->address = "/klingon/boost";
+	knob->id = 3;
+	knob->map[0] = 0.0;
+	knob->map[1] = 1.0;
+	knob->map[2] = 0.01;
+	knob->map[3] = 0.99;
+	knob->value = 0.5;
+	kot_set_boost(effect, knob->value);
+
+	send_klingon();
 }

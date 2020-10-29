@@ -171,6 +171,8 @@ public:
     void process (int n, float *inp [], float *out []);
     void tick_mono(int frames, float *audio);
 
+    float get_opmix (void) { return _opmix; }
+
     void set_delay (float v) { _ipdel = v; _cntA1++; }
     void set_xover (float v) { _xover = v; _cntB1++; }
     void set_rtlow (float v) { _rtlow = v; _cntB1++; }

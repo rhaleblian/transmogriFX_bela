@@ -19,6 +19,7 @@ typedef struct klingon_t
     float inverse_oversample_float;
 
     // User control settings
+    float drive;
     float gain;   // Distortion amount
     float tone;   // Tone control
     float level;  // Output level

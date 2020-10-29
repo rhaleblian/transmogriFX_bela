@@ -198,6 +198,7 @@ void clipper_tick(klingon* kot, int N, float* x, float* clean)  // Add in gain p
 // Typical real-time user-configurable parameters
 void kot_set_drive(klingon* kot, float drive_db)   // 0 dB to 45 dB
 {
+	kot->drive = drive_db;  // For TouchOSC param sync
     float drv = drive_db;
 
     if (drv < 0.0)

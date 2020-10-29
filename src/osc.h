@@ -26,10 +26,10 @@ typedef float parameter_map[4];
 
 typedef struct {
 	unsigned int id;
-	const char* name;
-	const char* path;
+	const char* address;
 	parameter_map map;
-	float* value;
+	float value;
+	// (void)setter(void*, float);
 } knob_t;
 
 void setup(
@@ -41,7 +41,6 @@ void setup(
 	Reverb* reverb);
 
 void send_knob(knob_t &knob);
-void send_knobs(knob_t knobs[], int count);
 
 void teardown();
 
