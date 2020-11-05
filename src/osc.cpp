@@ -9,9 +9,8 @@
 #include <Bela.h>
 #include <stdio.h>
 #include <iostream>
-#include <libraries/OscSender/OscSender.h>
-#include <libraries/OscReceiver/OscReceiver.h>
 #include "osc.h"
+#include "osc_delay.h"
 
 namespace osc {
 
@@ -27,7 +26,7 @@ Sustainer* sustainer;
 eq_filters *eq1, *eq2;
 tflanger* flanger;
 // phaser_coeffs* phaser;
-tflanger* delay;
+delay::Faceplate* delay;
 // trem_coeffs* tremolo;
 // iwah_coeffs* wah;
 
@@ -45,8 +44,21 @@ float torange(float f, parameter_map &p) {
 }
 
 void print_knob(knob_t &knob) {
-	printf("%d %f %s ", knob.id, knob.value, knob.address);
-	printf("%f %f %f %f\n", knob.map[0], knob.map[1], knob.map[2], knob.map[3]);
+	printf("id %d value %f address %s ", knob.id, knob.value, knob.address);
+	printf("map %f %f %f %f\n", knob.map[0], knob.map[1], knob.map[2], knob.map[3]);
+}
+
+void set_knob(knob_t& knob, const char* address, int id,
+			  float map0, float map1, float map2, float map3,
+			  float value)
+{
+	knob.address = address;
+	knob.id = id;
+	knob.map[0] = map0;
+	knob.map[1] = map1;
+	knob.map[2] = map2;
+	knob.map[3] = map3;
+	knob.value = value;
 }
 
 void send_knob(knob_t &knob) {
@@ -61,6 +73,7 @@ void send_address_value(const char *address, float value) {
 }
 
 #include "osc_compressor.hpp"
+#include "osc_sustainer.hpp"
 #include "osc_klingon.hpp"
 #include "osc_overdrive.hpp"
 #include "osc_chorus.hpp"
@@ -68,9 +81,12 @@ void send_address_value(const char *address, float value) {
 
 void on_receive(oscpkt::Message* msg, void* arg) {
 	// printf("received %s\n", msg->addressPattern().c_str());
+	receive_compressor(msg);
+	receive_sustainer(msg);
 	receive_klingon(msg);
 	receive_overdrive(msg);
 	receive_chorus(msg);
+	delay->receive(msg);
 	receive_reverb(msg);
 }
 
@@ -80,13 +96,19 @@ void setup(
 	klingon *kot,
 	::overdrive *ovd,
 	tflanger *cho,
+	tflanger *dly,
 	Reverb *rev)
 {
 	receiver.setup(localport, on_receive);
 	sender.setup(remoteport, remoteip);
+	
+	setup_compressor(cmp);
+	setup_sustainer(sus);
 	setup_klingon(kot);
 	setup_overdrive(ovd);
 	setup_chorus(cho);
+	delay = new delay::Faceplate();
+	delay->setup(dly);
 	setup_reverb(rev);
 }
 
