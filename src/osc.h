@@ -12,11 +12,11 @@ specific layout included with the source code.
 #include "fb_compressor.h"
 #include "Sustainer.h"
 #include "eq.h"
-// #include "lfo.h"
-// #include "inductorwah.h"
-// #include "phaser.h"
-// #include "trem.h"
-// #include "envelope_filter.h"
+#include "lfo.h"
+#include "inductorwah.h"
+#include "phaser.h"
+#include "trem.h"
+#include "envelope_filter.h"
 #include "overdrive.h"
 #include "klingon.h"
 #include "flange.h"
@@ -38,6 +38,7 @@ float torange(float f, parameter_map &p);
 void send_address_value(const char *address, float value);
 
 void setup(
+	iwah_t* wah,
 	feedback_compressor* compressor,
 	Sustainer* sustainer,
 	klingon* klingontone,

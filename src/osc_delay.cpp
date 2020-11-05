@@ -28,7 +28,6 @@ bool Faceplate::receive(oscpkt::Message* msg) {
 
 	if(msg->match("/delay/enable")) {
 		msg->match("/delay/enable").popFloat(f).isOkNoMoreArgs();
-		printf("%d\n", f);
 		f > 0.0 ? enable() : disable();
 		return true;
 	}

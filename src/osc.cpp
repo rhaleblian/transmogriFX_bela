@@ -11,6 +11,7 @@
 #include <iostream>
 #include "osc.h"
 #include "osc_delay.h"
+#include "osc_wah.h"
 
 namespace osc {
 
@@ -22,13 +23,13 @@ const char* remoteip = "192.168.1.65";  // iPad 2
 // END SITE CONFIGURATION
 
 // Local pointers to devices.
-Sustainer* sustainer;
-eq_filters *eq1, *eq2;
-tflanger* flanger;
+// Sustainer* sustainer;
+// eq_filters *eq1, *eq2;
+// tflanger* flanger;
 // phaser_coeffs* phaser;
 delay::Faceplate* delay;
 // trem_coeffs* tremolo;
-// iwah_coeffs* wah;
+wah::Faceplate* wahwah;
 
 OscReceiver receiver;
 OscSender sender;
@@ -43,12 +44,7 @@ float torange(float f, parameter_map &p) {
 	return map(f, p[0], p[1], p[2], p[3]);
 }
 
-void print_knob(knob_t &knob) {
-	printf("id %d value %f address %s ", knob.id, knob.value, knob.address);
-	printf("map %f %f %f %f\n", knob.map[0], knob.map[1], knob.map[2], knob.map[3]);
-}
-
-void set_knob(knob_t& knob, const char* address, int id,
+void create_knob(knob_t& knob, const char* address, int id,
 			  float map0, float map1, float map2, float map3,
 			  float value)
 {
@@ -61,6 +57,11 @@ void set_knob(knob_t& knob, const char* address, int id,
 	knob.value = value;
 }
 
+void print_knob(knob_t &knob) {
+	printf("id %d value %f address %s ", knob.id, knob.value, knob.address);
+	printf("map %f %f %f %f\n", knob.map[0], knob.map[1], knob.map[2], knob.map[3]);
+}
+
 void send_knob(knob_t &knob) {
 	float value = todomain(knob.value, knob.map);
 	printf("%s <- %f\n", knob.address, value);
@@ -68,7 +69,7 @@ void send_knob(knob_t &knob) {
 }
 
 void send_address_value(const char *address, float value) {
-	// Use this when a 'wire' to the effect's internal param isn't possible.
+	// Use this when you don't have a knob for the value.
 	sender.newMessage(address).add(value).send();
 }
 
@@ -81,6 +82,7 @@ void send_address_value(const char *address, float value) {
 
 void on_receive(oscpkt::Message* msg, void* arg) {
 	// printf("received %s\n", msg->addressPattern().c_str());
+	wahwah->receive(msg);
 	receive_compressor(msg);
 	receive_sustainer(msg);
 	receive_klingon(msg);
@@ -91,6 +93,7 @@ void on_receive(oscpkt::Message* msg, void* arg) {
 }
 
 void setup(
+	iwah_t* wah,
 	feedback_compressor* cmp,
 	Sustainer* sus,
 	klingon *kot,
@@ -102,12 +105,15 @@ void setup(
 	receiver.setup(localport, on_receive);
 	sender.setup(remoteport, remoteip);
 	
+	wahwah = new wah::Faceplate();
+	delay = new delay::Faceplate();
+
+	wahwah->setup(wah);
 	setup_compressor(cmp);
 	setup_sustainer(sus);
 	setup_klingon(kot);
 	setup_overdrive(ovd);
 	setup_chorus(cho);
-	delay = new delay::Faceplate();
 	delay->setup(dly);
 	setup_reverb(rev);
 }

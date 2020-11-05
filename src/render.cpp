@@ -2236,7 +2236,7 @@ bool setup(BelaContext *context, void *userData)
 	for(int i = 0; i<gNframes; i++)
 		gMaster_Envelope[i] = 0.0;
 
-	osc::setup(fbcompressor, &fx_sustain, ko, od, chorus, delayline, &zita1);
+	osc::setup(iwah, fbcompressor, &fx_sustain, ko, od, chorus, delayline, &zita1);
 
 	//
 	// DEBUG (scope)
