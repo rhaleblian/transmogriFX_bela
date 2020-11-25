@@ -7,20 +7,16 @@
 // There is some C++ in here but effort is made to not put in too much.
 
 #include <Bela.h>
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "ini.h"
 #include "osc.h"
 #include "osc_delay.h"
 #include "osc_wah.h"
 
 namespace osc {
-
-// BEGIN SITE CONFIGURATION
-const int localport = 65001;
-const int remoteport = 65002;
-const char* remoteip = "192.168.1.65";  // iPad 2
-// const char* remoteip = "192.168.1.73";  // Pixel 3a
-// END SITE CONFIGURATION
 
 // Local pointers to devices.
 // Sustainer* sustainer;
@@ -33,6 +29,14 @@ wah::Faceplate* wahwah;
 
 OscReceiver receiver;
 OscSender sender;
+const char* conffilename = "osc.ini";
+int localport = 8000;
+int remoteport = 9000;
+// const char* remoteip = "192.168.1.65";  // iPad 2
+// const char* remoteip = "192.168.1.73";  // Pixel 3a
+// const char* remoteip = "192.168.1.92";  // Nexus 5
+std::string remoteip;
+// #define CONF_MAX_BYTES 1024
 
 float todomain(float f, parameter_map &p) {
 	// Transform an effect parameter value to an OSC fader value.
@@ -60,6 +64,40 @@ void create_knob(knob_t& knob, const char* address, int id,
 void print_knob(knob_t &knob) {
 	printf("id %d value %f address %s ", knob.id, knob.value, knob.address);
 	printf("map %f %f %f %f\n", knob.map[0], knob.map[1], knob.map[2], knob.map[3]);
+}
+
+int read_configuration() {
+	// char *buf;
+	// auto fp = fopen(conffilename, "r");
+	
+	// // get filesize
+	// fseek(fp, 0L, SEEK_END);
+	// auto sz = ftell(fp);
+	// //fseek(fp, 0L, SEEK_SET);
+	// rewind(fp);
+
+	// buf = (char *)malloc(sz);
+	// fread(buf, 1, sz, fp);
+	// printf("%s\n", buf);
+	// free(buf);
+	// fclose(fp);
+	
+    INIReader reader(conffilename);
+
+    if (reader.ParseError() != 0) {
+        std::cout << "WARN: Can't load " << conffilename << std::endl;
+        return 1;
+    }
+    
+    remoteip = reader.Get("osc", "remoteip", "bela");
+    localport = reader.GetInteger("osc", "localport", localport);
+    remoteport = reader.GetInteger("osc", "remoteport", remoteport);
+    
+    std::cout << "remoteip " << remoteip << std::endl;
+    std::cout << "localport " << localport << std::endl;
+    std::cout << "remoteport " << remoteport << std::endl;
+    
+    return 0;
 }
 
 void send_knob(knob_t &knob) {
@@ -102,6 +140,7 @@ void setup(
 	tflanger *dly,
 	Reverb *rev)
 {
+	read_configuration();
 	receiver.setup(localport, on_receive);
 	sender.setup(remoteport, remoteip);
 	
