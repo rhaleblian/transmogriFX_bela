@@ -2115,7 +2115,7 @@ void setup_digital_inputs(BelaContext *context)
 
 }
 
-#define SHRIMP_SINGLECHANNEL
+//#define SHRIMP_SINGLECHANNEL
 
 bool setup(BelaContext *context, void *userData)
 {
@@ -2267,21 +2267,13 @@ void render(BelaContext *context, void *userData)
 	klingon_tick(ko, ch0);
 	trem_tick_n(trem, ch0, gNframes);
 
-#ifdef SHRIMP_SINGLECHANNEL
-	tflanger_tick(delayline, gNframes, ch0, gMaster_Envelope);
-	tflanger_tick(chorus, gNframes, ch0, gMaster_Envelope);
-	tflanger_tick(flanger, gNframes, ch0, gMaster_Envelope);
-	phaser_tick_n(phaser, gNframes, ch0);
-	zita1.tick_mono(gNframes, ch0);
-#else
 	//CH1 effects
 	tflanger_tick(delayline, gNframes, ch1, gMaster_Envelope);
 	tflanger_tick(chorus, gNframes, ch1, gMaster_Envelope);
 	tflanger_tick(flanger, gNframes, ch1, gMaster_Envelope);
 	phaser_tick_n(phaser, gNframes, ch1);
 	zita1.tick_mono(gNframes, ch1);
-#endif
-	
+
 	for(unsigned int n = 0; n < context->audioFrames; n++) {
 		if(startup_mask_timer > 0) 
 			startup_mask_timer--;
@@ -2290,11 +2282,7 @@ void render(BelaContext *context, void *userData)
 		scope.log(ch0[n], ch1[n]);
 #endif
 		audioWrite(context, n, 0, ch0[n]);
-#ifdef SHRIMP_SINGLECHANNEL
-		audioWrite(context, n, 1, ch0[n]);
-#else
 		audioWrite(context, n, 1, ch1[n]);
-#endif
 	}	
 }
 

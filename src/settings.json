@@ -1,1 +1,1 @@
-{"fileName":"osc.cpp","CLArgs":{"-p":"16","-C":"4","-B":"16","-H":"-6","-N":"1","-G":"1","-M":"0","-D":"-6","-A":"0","--pga-gain-left":"0","--pga-gain-right":"0","user":"","make":"","-X":"0","audioExpander":"0","-Y":"","-Z":"","--disable-led":"0"}}
+{"fileName":"osc.cpp","CLArgs":{"-p":"16","-C":"4","-B":"16","-H":"-6","-N":"1","-G":"1","-M":"0","-D":"-6","-A":"0","--pga-gain-left":"0","--pga-gain-right":"0","user":"","make":"","-X":"0","audioExpander":"0","-Y":"","-Z":"","--disable-led":1}}
