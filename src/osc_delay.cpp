@@ -15,12 +15,14 @@ void Faceplate::disable() {
 	tflanger_setTrails(m_effect, 0);
 	tflanger_setFinalGain(m_effect, 0.0);
 	m_enable = false;
+	print("delay: disabled");
 }
 
 void Faceplate::enable() {
 	tflanger_setTrails(m_effect, 1);
 	tflanger_setFinalGain(m_effect, 1.0);
 	m_enable = true;
+	print("delay: enabled");
 }
 
 bool Faceplate::receive(oscpkt::Message* msg) {
