@@ -5,9 +5,11 @@
 //
 //DEBUG
 //
-
+#define SCOPE
+#ifdef SCOPE
 #include <libraries/Scope/Scope.h>
 Scope scope;
+#endif
 
 //
 // End DEBUG
@@ -2241,7 +2243,7 @@ bool setup(BelaContext *context, void *userData)
 	//
 	// DEBUG (scope)
 	//
-#ifdef SCOPE_ENABLEs
+#ifdef SCOPE
 	scope.setup(2, context->audioSampleRate);
 #endif
 	return true;
@@ -2277,7 +2279,7 @@ void render(BelaContext *context, void *userData)
 	for(unsigned int n = 0; n < context->audioFrames; n++) {
 		if(startup_mask_timer > 0) 
 			startup_mask_timer--;
-#ifdef SCOPE_ENABLE
+#ifdef SCOPE
 		scope.log(gMaster_Envelope[n], ch0[n]);
 		scope.log(ch0[n], ch1[n]);
 #endif
