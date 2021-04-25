@@ -5,15 +5,14 @@
 //
 //DEBUG
 //
-#define SCOPE
-#ifdef SCOPE
+#ifdef SCOPE_ENABLE
 #include <libraries/Scope/Scope.h>
 Scope scope;
 #endif
+#include <libraries/Gui/Gui.h>
 
-//
-// End DEBUG
-//
+#include <stdlib.h>
+#include <math.h>
 
 #include "flange.h"
 #include "lfo.h"
@@ -33,6 +32,16 @@ unsigned int gAudioFramesPerAnalogFrame;
 //Global input sample rate variable
 float gSampleRate = 44100.0;
 float gifs = 1.0/gSampleRate;
+
+Gui gui;
+#ifdef SCOPE_ENABLE
+Scope scope;
+#endif
+
+// Time period (in seconds) after which gNumber will be updated and sent
+float gTimePeriod = 1;
+//value to be sent in the buffer
+int gNumber = 0;
 
 //DC removal filter parameters
 // Not needed with bela core patch
@@ -2240,10 +2249,12 @@ bool setup(BelaContext *context, void *userData)
 
 	osc::setup(iwah, fbcompressor, &fx_sustain, ko, od, chorus, delayline, &zita1);
 
+	// gui.setup(context->projectName);
+
 	//
 	// DEBUG (scope)
 	//
-#ifdef SCOPE
+#ifdef SCOPE_ENABLE
 	scope.setup(2, context->audioSampleRate);
 #endif
 	return true;
@@ -2276,19 +2287,28 @@ void render(BelaContext *context, void *userData)
 	phaser_tick_n(phaser, gNframes, ch1);
 	zita1.tick_mono(gNframes, ch1);
 
+	// static unsigned int gui_timer = 0;
 	for(unsigned int n = 0; n < context->audioFrames; n++) {
 		if(startup_mask_timer > 0) 
 			startup_mask_timer--;
-#ifdef SCOPE
+#ifdef SCOPE_ENABLE
 		scope.log(gMaster_Envelope[n], ch0[n]);
 		scope.log(ch0[n], ch1[n]);
 #endif
 		audioWrite(context, n, 0, ch0[n]);
 		audioWrite(context, n, 1, ch1[n]);
-	}	
+
+		// gui_timer++;
+		// if (gui_timer >= gTimePeriod*context->audioSampleRate)
+		// {
+		//     gNumber++;
+		//     gui.sendBuffer(0, gNumber);
+		//     gui_timer = 0;
+		// }
+	}
 }
 
 void cleanup(BelaContext *context, void *userData)
 {
-
+	// would be comforting if something got run.
 }

@@ -89,7 +89,7 @@ void send_chorus() {
 void setup_chorus(tflanger *effect) {
 	chorus_faceplate.effect = effect;
 	
-	enable_chorus(false);
+	enable_chorus(true);
 
 	auto knob = &chorus_faceplate.rate;
 	knob->address = "/chorus/rate";
